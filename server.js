@@ -8,22 +8,29 @@ const ACTIONS = require('./src/Actions');
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static('build'));
-app.use((req, res, next) => {
+// Serve static assets from the "build" folder
+app.use(express.static(path.join(__dirname, 'build')));
+
+// Fallback route: only serve index.html for routes without a file extension
+app.get('*', (req, res) => {
+    // Check if the URL has an extension (e.g., .js, .css, .json)
+    if (path.extname(req.path)) {
+        // If the file is not found, respond with a 404 status
+        return res.status(404).send('Not found');
+    }
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
+// Socket.io event handling remains the same
+
 const userSocketMap = {};
 function getAllConnectedClients(roomId) {
-    // Map
-    return Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(
-        (socketId) => {
-            return {
-                socketId,
-                username: userSocketMap[socketId],
-            };
-        }
-    );
+    return Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(socketId => {
+        return {
+            socketId,
+            username: userSocketMap[socketId],
+        };
+    });
 }
 
 io.on('connection', (socket) => {
