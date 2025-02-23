@@ -11,16 +11,14 @@ const io = new Server(server);
 // Serve static assets from the "build" folder
 app.use(express.static(path.join(__dirname, 'build')));
 
-// Fallback route: Serve index.html for routes that don't look like requests for a file
 app.get('*', (req, res) => {
-    // If the request URL contains a file extension, assume it's an asset request
+    // Only serve index.html for routes that don't look like asset requests
     if (path.extname(req.path)) {
-        // If the file wasn't served by express.static, return a 404
         return res.status(404).send('File not found');
     }
-    // Otherwise, send index.html for SPA routing
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
+
 
 // Socket.io configuration (same as before)
 const userSocketMap = {};
