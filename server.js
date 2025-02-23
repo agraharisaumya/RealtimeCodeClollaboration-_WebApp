@@ -11,26 +11,24 @@ const io = new Server(server);
 // Serve static assets from the "build" folder
 app.use(express.static(path.join(__dirname, 'build')));
 
-// Fallback route: only serve index.html for routes without a file extension
+// Fallback route: Serve index.html for routes that don't look like requests for a file
 app.get('*', (req, res) => {
-    // Check if the URL has an extension (e.g., .js, .css, .json)
+    // If the request URL contains a file extension, assume it's an asset request
     if (path.extname(req.path)) {
-        // If the file is not found, respond with a 404 status
-        return res.status(404).send('Not found');
+        // If the file wasn't served by express.static, return a 404
+        return res.status(404).send('File not found');
     }
+    // Otherwise, send index.html for SPA routing
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
-// Socket.io event handling remains the same
-
+// Socket.io configuration (same as before)
 const userSocketMap = {};
 function getAllConnectedClients(roomId) {
-    return Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(socketId => {
-        return {
-            socketId,
-            username: userSocketMap[socketId],
-        };
-    });
+    return Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(socketId => ({
+        socketId,
+        username: userSocketMap[socketId],
+    }));
 }
 
 io.on('connection', (socket) => {
